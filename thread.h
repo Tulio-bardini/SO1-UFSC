@@ -20,7 +20,11 @@ public:
      * PS: devido ao template, este método deve ser implementado neste mesmo arquivo .h
      */ 
     template<typename ... Tn>
-    Thread(void (* entry)(Tn ...), Tn ... an);
+    Thread(void (* entry)(Tn ...), Tn ... an)
+    {
+        Context* _context = Context((void(*)()) entry, sizeof...(Tn), an...);
+        _id = next_id++;
+    }
 
     /*
      * Retorna a Thread que está em execução.
@@ -55,6 +59,7 @@ private:
     int _id;
     Context * volatile _context;
     static Thread * _running;
+    static int next_id;
 
     /*
      * Qualquer outro atributo que você achar necessário para a solução.
