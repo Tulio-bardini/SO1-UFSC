@@ -21,12 +21,14 @@ class CPU
             template<typename ... Tn>
             Context(void (* func)(Tn ...), Tn ... an) {
                 _stack = new char[STACK_SIZE];
-                save();
-                _context.uc_link = 0;
-                _context.uc_stack.ss_sp = _stack;
-                _context.uc_stack.ss_size = STACK_SIZE;
-                _context.uc_stack.ss_flags = 0;
-                makecontext(&_context,(void(*)()) func, sizeof...(Tn), an...);
+                if (_stack) {
+                    save();
+                    _context.uc_link = 0;
+                    _context.uc_stack.ss_sp = _stack;
+                    _context.uc_stack.ss_size = STACK_SIZE;
+                    _context.uc_stack.ss_flags = 0;
+                    makecontext(&_context,(void(*)()) func, sizeof...(Tn), an...);
+                }
             }
 
             ~Context();
