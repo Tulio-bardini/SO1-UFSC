@@ -5,6 +5,7 @@
 #include "cpu.h"
 #include "traits.h"
 #include "thread.h"
+#include "system.h"
 
 __BEGIN_API
 
@@ -12,6 +13,8 @@ class Main
 {
 public:
     Main() {
+        System::init();
+
         main_name = "main";
         ping_name = "    Ping";
         pong_name = "        Pong";
