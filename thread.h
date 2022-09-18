@@ -55,6 +55,8 @@ public:
      * Qualquer outro método que você achar necessário para a solução.
      */ 
 
+    Context* context() { return _context; }
+
 private:
     int _id;
     Context * volatile _context;
