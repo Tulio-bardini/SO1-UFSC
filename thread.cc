@@ -13,6 +13,7 @@ int Thread::switch_context(Thread * prev, Thread * next)
 {
     CPU::switch_context(prev->_context, next->_context);
     _running = next;
+    return 0;
 }
 
 void Thread::thread_exit (int exit_code)

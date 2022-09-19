@@ -13,7 +13,6 @@ class Main
 {
 public:
     Main() {
-        System::init();
 
         main_name = "main";
         ping_name = "    Ping";

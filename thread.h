@@ -22,7 +22,7 @@ public:
     template<typename ... Tn>
     Thread(void (* entry)(Tn ...), Tn ... an)
     {
-        Context* _context = Context((void(*)()) entry, sizeof...(Tn), an...);
+        _context = new Context(entry, an...);
         _id = next_id++;
     }
 
