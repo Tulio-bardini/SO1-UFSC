@@ -39,6 +39,18 @@ struct Traits<System> : public Traits<void>
     static const bool debugged = false;
 };
 
+template <>
+struct Traits<Thread> : public Traits<void>
+{
+    static const bool debugged = false;
+};
+
+template <>
+struct Traits<CPU::Context> : public Traits<void>
+{
+    static const bool debugged = false;
+};
+
 __END_API
 
 #endif
