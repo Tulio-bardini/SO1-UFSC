@@ -15,13 +15,14 @@ void CPU::Context::load()
 
 CPU::Context::~Context()
 {
-    delete _stack;
+    if (_stack) {
+        delete _stack;
+    }
 }
 
 void CPU::switch_context(Context *from, Context *to)
 {
-    from->save();
-    to->load();
+    swapcontext(&from->_context, &to->_context);
 }
 
 __END_API
