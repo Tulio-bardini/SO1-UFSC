@@ -4,6 +4,7 @@
 #include <ucontext.h>
 #include <iostream>
 #include "traits.h"
+#include "debug.h"
 
 __BEGIN_API
 
@@ -41,12 +42,13 @@ class CPU
 template<typename ... Tn>
 inline CPU::Context::Context(void (* func)(Tn ...), Tn ... an)
 {
+    db<CPU>(TRC) << "CPU::Context::Context() chamado\n";
     save();
     _stack = new char[STACK_SIZE];
     if (!_stack) {
+        db<CPU>(ERR) << "CPU::Context::Context() pilha não alocada\n";
         exit(-1);
     }
-
     _context.uc_link = 0;
     _context.uc_stack.ss_sp = _stack;
     _context.uc_stack.ss_size = STACK_SIZE;

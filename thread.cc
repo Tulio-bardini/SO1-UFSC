@@ -28,6 +28,7 @@ void Thread::thread_exit (int exit_code)
 
 int Thread::id()
 {
+    db<Thread>(TRC) << "Thread::id() chamado\n";
     return _id;
 }
 
