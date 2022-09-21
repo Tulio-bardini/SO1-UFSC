@@ -17,7 +17,10 @@ class CPU
         private:
             static const unsigned int STACK_SIZE = Traits<CPU>::STACK_SIZE;
         public:
-            Context() { _stack = 0; }
+            Context() { 
+                db<CPU>(TRC) << "CPU::Context::Context() chamado\n";
+                _stack = 0;
+            }
 
             template<typename ... Tn>
             Context(void (* func)(Tn ...), Tn ... an);

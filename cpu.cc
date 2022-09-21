@@ -1,4 +1,5 @@
 #include "cpu.h"
+#include "debug.h"
 #include <iostream>
 
 __BEGIN_API
