@@ -13,7 +13,6 @@ class CPU; //declaração das classes criadas nos trabalhos devem ser colocadas 
 class Debug;
 class System;
 class Thread;
-class Context;
 
 //declaração da classe Traits
 template<typename T>
