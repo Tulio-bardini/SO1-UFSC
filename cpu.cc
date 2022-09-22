@@ -24,10 +24,10 @@ CPU::Context::~Context()
     }
 }
 
-void CPU::switch_context(Context *from, Context *to)
+int CPU::switch_context(Context *from, Context *to)
 {
     db<CPU>(TRC) << "CPU::Context::switch_context() chamado\n";
-    swapcontext(&from->_context, &to->_context);
+    return swapcontext(&from->_context, &to->_context);
 }
 
 __END_API

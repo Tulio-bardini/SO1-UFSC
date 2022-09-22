@@ -38,7 +38,7 @@ class CPU
 
     public:
 
-        static void switch_context(Context *from, Context *to);
+        static int switch_context(Context *from, Context *to);
 
 };
 

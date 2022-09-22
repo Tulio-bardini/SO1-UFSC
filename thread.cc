@@ -14,15 +14,15 @@ int Thread::switch_context(Thread * prev, Thread * next)
 {
     db<Thread>(TRC) << "Thread::switch_context() chamado\n";
     db<Thread>(INF) << "Thread switch: " << prev->_id << " -> " << next->_id << "\n";
-    CPU::switch_context(prev->_context, next->_context);
     _running = next;
-    return 0;
+    return CPU::switch_context(prev->_context, next->_context);
 }
 
 void Thread::thread_exit (int exit_code)
 {
     db<Thread>(TRC) << "Thread::thread_exit() chamado\n";
     db<Thread>(INF) << "Thread exited: " << _id << "\n";
+    next_id -= 1;
     delete _context;
 }
 
