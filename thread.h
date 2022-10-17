@@ -103,9 +103,9 @@ private:
     Context * volatile _context;
     static Thread * _running;
 
-    static Thread * _main; 
+    static Thread _main; 
     static CPU::Context _main_context;
-    static Thread * _dispatcher;
+    static Thread _dispatcher;
     static Ready_Queue _ready;
     Ready_Queue::Element _link;
     volatile State _state;

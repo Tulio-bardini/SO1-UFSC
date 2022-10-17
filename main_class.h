@@ -38,7 +38,7 @@ public:
         delete ping_pong_threads[2];
         delete ping_pong_threads[3];
         delete ping_pong_threads[4];
-    }
+     }
 
     ~Main() {}
 
