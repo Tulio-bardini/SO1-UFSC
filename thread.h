@@ -62,7 +62,7 @@ public:
     /*
      * Retorna o ID da thread.
      */ 
-    int id();
+    int id() { return _id; };
 
     /*
      * NOVO MÉTODO DESTE TRABALHO.
@@ -95,14 +95,17 @@ public:
      * Qualquer outro método que você achar necessário para a solução.
      */ 
 
+    Context* context() { return _context; }
+
 private:
     int _id;
+    static int _next_id;
     Context * volatile _context;
     static Thread * _running;
-    
-    static Thread _main; 
+
+    static Thread * _main; 
     static CPU::Context _main_context;
-    static Thread _dispatcher;
+    static Thread * _dispatcher;
     static Ready_Queue _ready;
     Ready_Queue::Element _link;
     volatile State _state;
@@ -114,9 +117,18 @@ private:
 };
 
 template<typename ... Tn>
-inline Thread::Thread(void (* entry)(Tn ...), Tn ... an) : /* inicialização de _link */
+inline Thread::Thread(void (* entry)(Tn ...), Tn ... an) /* inicialização de _link */
 {
-    //IMPLEMENTAÇÃO DO CONSTRUTOR
+    db<Thread>(TRC) << "Thread::Thread() chamado\n";
+
+    _context = new Context(entry, an...);
+
+    _id = _next_id++;
+    _state = READY;
+    _link = Ready_Queue::Element(this, (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count()));
+    _ready.insert(&_link);
+
+    db<Thread>(INF) << "Thread created: " << _id << "\n";
 }
 
 __END_API
