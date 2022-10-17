@@ -1,9 +1,9 @@
 CC=g++
 all:main
 
-DEPS = cpu.h debug.h main_class.h system.h thread.h traits.h
+DEPS = cpu.h debug.h main_class.h system.h thread.h traits.h list.h
 
-main: cpu.o debug.o system.o thread.o main.o main_class.o traits.h
+main: cpu.o debug.o system.o thread.o main.o main_class.o
 	g++ cpu.o debug.o system.o thread.o main.o main_class.o -o main
 
 cpu.o: cpu.cc $(DEPS)
