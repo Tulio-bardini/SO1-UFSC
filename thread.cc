@@ -34,22 +34,17 @@ void Thread::thread_exit (int exit_code)
 
 void Thread::init(void (*main)(void *)) {
     db<Thread>(TRC) << "Thread::thread_init() chamado\n";
-    // Create Thread main
+
     new (&_main) Thread(main,(void*) "main");
     _main._link.rank(INT_MAX);
 
-    // Create Thread dispatcher
     new (&_dispatcher) Thread(Thread::dispatcher);
     _dispatcher._link.rank(INT_MAX);
 
     db<Thread>(INF) << "Main Thread ID: " << Thread::_main.id() << "\n";
     db<Thread>(INF) << "Dispatcher Thread ID: " << Thread::_dispatcher.id() << "\n";
 
-    // Switch context to Thread Main
-    // Thread current_thread = Thread();
-    // Thread::switch_context(&current_thread, &_main);
-
-    CPU::Context _main_context;
+    new (&_main_context) CPU::Context();
     _running = &_main;
     _running->_state = RUNNING;
     _ready.remove(&_main);
@@ -60,24 +55,15 @@ void Thread::init(void (*main)(void *)) {
 void Thread::dispatcher() {
     db<Thread>(TRC) << "Thread::dispatcher() chamado\n";
 
-    while (Thread::_next_id >= 2) {
-        // Choose next thread
-        
+    while (Thread::_next_id >= 2) {        
         Thread *next_thread = _ready.remove_head()->object();
 
-        // Update Dispatcher Thread status and insert it into _ready 
         _dispatcher._state = READY;
-        _dispatcher._link = Ready_Queue::Element(&_dispatcher, (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count()));
-        // Pq aqui precisa passar um ponteiro ao invés do próprio _link?
         _ready.insert(&_dispatcher._link);
         
-        // Update _running pointer 
         _running = next_thread;
-
-        // Update next thread status
         _running->_state = RUNNING;
 
-        // Switch threads
         switch_context(&_dispatcher, _running);
 
         if (next_thread->_state == FINISHING) {
@@ -85,13 +71,8 @@ void Thread::dispatcher() {
         }
     }
 
-    // Update dispatcher thread status
     _dispatcher._state = FINISHING;
-
-    // Remove dispatcher thread from ready queue
     _ready.remove(&_dispatcher);
-
-    // Switch thread back to main
     switch_context(&_dispatcher, &_main);
 }
 
@@ -99,7 +80,8 @@ void Thread::yield()
 {
 
     db<Thread>(TRC) << "Thread::yield chamado\n";
-    db<Thread>(TRC) << "_ready size: " << _ready.size() << "\n";
+    db<Thread>(INF) << "Yielding Thread: " << _running->_id << "\n";
+    db<Thread>(INF) << "_ready size: " << _ready.size() << "\n";
     
     if (_running->_state != FINISHING &&
         _running->_id != _main._id &&
@@ -107,9 +89,8 @@ void Thread::yield()
     {
         int now = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         _running->_link.rank(now);
+        _running->_state = READY;
     }
-
-    db<Thread>(INF) << "Yielding Thread: " << _running->_id << "\n";
 
     _ready.insert(&_running->_link);
     Thread* current_thread = _running;
