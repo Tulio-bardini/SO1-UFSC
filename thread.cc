@@ -98,7 +98,7 @@ void Thread::yield()
     _running = _ready.remove_head()->object();
     _running->_state = RUNNING;
 
-    Thread::switch_context(current_thread, &_dispatcher);
+    Thread::switch_context(current_thread, _running);
 }
 
 Thread::~Thread() {
