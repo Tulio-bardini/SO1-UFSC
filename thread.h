@@ -17,12 +17,14 @@ protected:
 public:
 
     typedef Ordered_List<Thread> Ready_Queue;
+    typedef Ordered_List<Thread> Suspend_Queue;
 
     // Thread State
     enum State {
         RUNNING,
         READY,
-        FINISHING
+        FINISHING,
+        SUSPEND
     };
 
     /*
@@ -97,17 +99,35 @@ public:
 
     Context* context() { return _context; }
 
+    /*
+    * Suspende a thread em execução até que a thread alvo finalize.
+    */
+    int join();
+
+    /*
+     * Coloca a thread que esta executando na fila de threads suspensas.
+     */
+    static void suspend();
+
+    /*
+     * Coloca a thread suspensa de volta para a fila de prontos
+     */
+    static void resume();
+
 private:
     int _id;
+    int _exit_code;
     static int _next_id;
     Context * volatile _context;
     static Thread * _running;
+    static Thread * _joined;
 
     static Thread _main; 
     static CPU::Context _main_context;
     static Thread _dispatcher;
     static Ready_Queue _ready;
     Ready_Queue::Element _link;
+    static Suspend_Queue _suspend;
     volatile State _state;
 
     /*

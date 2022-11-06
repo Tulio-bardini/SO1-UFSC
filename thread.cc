@@ -10,7 +10,9 @@ __BEGIN_API
 
 int Thread::_next_id = 0;
 Ordered_List<Thread> Thread::_ready = Ordered_List<Thread>();
+Ordered_List<Thread> Thread::_suspend = Ordered_List<Thread>();
 Thread *Thread::_running = 0;
+Thread *Thread::_joined = 0;
 Thread Thread::_main = Thread(); 
 Thread Thread::_dispatcher = Thread();
 CPU::Context Thread::_main_context = CPU::Context();
@@ -29,6 +31,7 @@ void Thread::thread_exit (int exit_code)
     db<Thread>(INF) << "Thread exited: " << _id << "\n";
     _state = FINISHING;
     _next_id -= 1;
+    resume();
     yield();
 }
 
@@ -98,7 +101,38 @@ void Thread::yield()
     _running = _ready.remove_head()->object();
     _running->_state = RUNNING;
 
-    Thread::switch_context(current_thread, &_dispatcher);
+    Thread::switch_context(current_thread, _running);
+}
+
+int Thread::join()
+{
+    _exit_code = _exit_code++;
+    _joined = _running;
+    suspend();
+
+    return _exit_code;
+}
+
+void Thread::suspend()
+{
+    _suspend.insert(&_running->_link);
+    _running->_state = SUSPEND;
+    Thread* current_thread = _running;
+    _running = _ready.remove_head()->object();
+    _running->_state = RUNNING;
+
+    switch_context(current_thread, _running);
+}
+
+void Thread::resume()
+{
+    if (_joined != 0)
+    {
+        _joined->_state = READY;
+        _suspend.remove(_joined);
+        _ready.insert(&_joined->_link);
+        
+    }
 }
 
 Thread::~Thread() {
