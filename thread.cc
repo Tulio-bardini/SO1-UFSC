@@ -56,7 +56,7 @@ void Thread::init(void (*main)(void *)) {
 void Thread::dispatcher() {
     db<Thread>(TRC) << "Thread::dispatcher() chamado\n";
 
-    while (Thread::_next_id >= 2) {        
+    while (Thread::_next_id >= 1) {        
         Thread *next_thread = _ready.remove_head()->object();
 
         _dispatcher._state = READY;
@@ -72,9 +72,9 @@ void Thread::dispatcher() {
         }
     }
 
-    _dispatcher._state = FINISHING;
-    _ready.remove(&_dispatcher);
-    switch_context(&_dispatcher, &_main);
+    // _dispatcher._state = FINISHING;
+    // _ready.remove(&_dispatcher);
+    // switch_context(&_dispatcher, &_main);
 }
 
 void Thread::yield()
@@ -85,7 +85,6 @@ void Thread::yield()
     db<Thread>(INF) << "_ready size: " << _ready.size() << "\n";
     
     if (_running->_state != FINISHING &&
-        _running->_id != _main._id &&
         _running->_id != _dispatcher._id)
     {
         int now = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
