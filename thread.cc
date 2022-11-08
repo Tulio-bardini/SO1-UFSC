@@ -30,7 +30,7 @@ void Thread::thread_exit (int exit_code)
     db<Thread>(INF) << "Thread exited: " << _id << "\n";
     _state = FINISHING;
     _exit_code = exit_code;
-    // _next_id -= 1;
+    _next_id -= 1;
 
     if (_joining != 0) {
         _joining->resume();
@@ -63,7 +63,7 @@ void Thread::init(void (*main)(void *)) {
 void Thread::dispatcher() {
     db<Thread>(TRC) << "Thread::dispatcher() chamado\n";
 
-    while (Thread::_next_id >= 1) {        
+    while (_ready.size() > 0) {        
         Thread *next_thread = _ready.remove_head()->object();
 
         _dispatcher._state = READY;
@@ -79,9 +79,15 @@ void Thread::dispatcher() {
         }
     }
 
-    // _dispatcher._state = FINISHING;
-    // _ready.remove(&_dispatcher);
-    // switch_context(&_dispatcher, &_main);
+    for (auto const &thread : _suspended)
+    {
+        db<Thread>(WRN) << "Thread " << thread->id() << " was suspended and never resumed. Deleting thread.";
+        if (thread != &_main)
+        {
+            delete thread;
+        }
+    }
+
 }
 
 void Thread::yield()
@@ -118,18 +124,13 @@ void Thread::suspend() {
     db<Thread>(TRC) << "Thread::suspend chamado\n";
     db<Thread>(INF) << "SUSPEND: Suspended thread " << _id << "\n";
 
-    if (_state == SUSPENDED || this->id() == _dispatcher.id()) {
+    if (_state == SUSPENDED || this == &_dispatcher) {
         return;
     }
 
     _state = SUSPENDED;
     _ready.remove(this);
     _suspended.push_back(this);
-
-    // TODO: Lidar com o cenário em que a Thread em execução tenta se suspender.
-    // if (this->id() == _running->id()) {
-
-    // }
 }
 
 void Thread::resume() {
@@ -152,7 +153,9 @@ int Thread::join() {
     db<Thread>(TRC) << "Thread::join chamado\n";
     db<Thread>(INF) << "JOIN: Thread " << _running->_id << " is joining Thread " << _id << "\n";
 
-    // TODO: Liberar join em uma thread já encerrada.
+    if (_state == FINISHING) {
+        return 0;
+    }
 
     _running->suspend();
     _joining = _running;
