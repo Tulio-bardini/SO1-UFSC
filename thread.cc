@@ -36,10 +36,11 @@ void Thread::init(void (*main)(void *)) {
     db<Thread>(TRC) << "Thread::thread_init() chamado\n";
 
     new (&_main) Thread(main,(void*) "main");
-    _main._link.rank(INT_MAX);
+    int now = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+    _main._link.rank(now);
 
     new (&_dispatcher) Thread(Thread::dispatcher);
-    _dispatcher._link.rank(INT_MAX);
+    _dispatcher._link.rank(INT_MIN);
 
     db<Thread>(INF) << "Main Thread ID: " << Thread::_main.id() << "\n";
     db<Thread>(INF) << "Dispatcher Thread ID: " << Thread::_dispatcher.id() << "\n";
@@ -94,7 +95,7 @@ void Thread::yield()
 
     _ready.insert(&_running->_link);
     Thread* current_thread = _running;
-    _running = _ready.remove(&_dispatcher)->object();
+    _running = _ready.remove_head()->object();
     _running->_state = RUNNING;
 
     Thread::switch_context(current_thread, &_dispatcher);
