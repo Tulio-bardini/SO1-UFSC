@@ -43,8 +43,6 @@ void Thread::init(void (*main)(void *)) {
     db<Thread>(TRC) << "Thread::thread_init() chamado\n";
 
     new (&_main) Thread(main,(void*) "main");
-    int now = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-    _main._link.rank(now);
 
     new (&_dispatcher) Thread(Thread::dispatcher);
     _dispatcher._link.rank(INT_MIN);
@@ -81,7 +79,7 @@ void Thread::dispatcher() {
 
     for (auto const &thread : _suspended)
     {
-        db<Thread>(WRN) << "Thread " << thread->id() << " was suspended and never resumed. Deleting thread.";
+        db<Thread>(WRN) << "Thread " << thread->id() << " was suspended but never resumed. Deleting thread.";
         if (thread != &_main)
         {
             delete thread;
@@ -97,7 +95,8 @@ void Thread::yield()
     db<Thread>(INF) << "Yielding Thread: " << _running->_id << "\n";
     db<Thread>(INF) << "_ready size: " << _ready.size() << "\n";
 
-    if (_running->_id != _dispatcher._id)
+    if (_running != &_dispatcher &&
+        _running != &_main)
     {
         int now = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         _running->_link.rank(now);
@@ -144,8 +143,6 @@ void Thread::resume() {
     _state = READY;
     _suspended.remove(this);
 
-    int now = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-    _link.rank(INT_MIN);
     _ready.insert(&_link);
 }
 
