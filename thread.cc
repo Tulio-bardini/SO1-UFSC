@@ -10,6 +10,7 @@ __BEGIN_API
 
 int Thread::_next_id = 0;
 Ordered_List<Thread> Thread::_ready = Ordered_List<Thread>();
+std::list<Thread*> Thread::_suspended = std::list<Thread*>();
 Thread *Thread::_running = 0;
 Thread Thread::_main = Thread(); 
 Thread Thread::_dispatcher = Thread();
@@ -28,7 +29,13 @@ void Thread::thread_exit (int exit_code)
     db<Thread>(TRC) << "Thread::thread_exit() chamado\n";
     db<Thread>(INF) << "Thread exited: " << _id << "\n";
     _state = FINISHING;
+    _exit_code = exit_code;
     _next_id -= 1;
+
+    if (_joining != 0) {
+        _joining->resume();
+    }
+
     yield();
 }
 
@@ -36,11 +43,10 @@ void Thread::init(void (*main)(void *)) {
     db<Thread>(TRC) << "Thread::thread_init() chamado\n";
 
     new (&_main) Thread(main,(void*) "main");
-    _main._link.rank(INT_MAX);
 
     new (&_dispatcher) Thread(Thread::dispatcher);
-    int now = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-    _dispatcher._link.rank(now);
+    
+    _dispatcher._link.rank(INT_MIN);
 
     db<Thread>(INF) << "Main Thread ID: " << Thread::_main.id() << "\n";
     db<Thread>(INF) << "Dispatcher Thread ID: " << Thread::_dispatcher.id() << "\n";
@@ -56,7 +62,7 @@ void Thread::init(void (*main)(void *)) {
 void Thread::dispatcher() {
     db<Thread>(TRC) << "Thread::dispatcher() chamado\n";
 
-    while (Thread::_next_id >= 2) {        
+    while (_ready.size() > 0) {        
         Thread *next_thread = _ready.remove_head()->object();
 
         _dispatcher._state = READY;
@@ -72,9 +78,15 @@ void Thread::dispatcher() {
         }
     }
 
-    _dispatcher._state = FINISHING;
-    _ready.remove(&_dispatcher);
-    switch_context(&_dispatcher, &_main);
+    for (auto const &thread : _suspended)
+    {
+        db<Thread>(WRN) << "Thread " << thread->id() << " was suspended but never resumed. Deleting thread.";
+        if (thread != &_main)
+        {
+            delete thread;
+        }
+    }
+
 }
 
 void Thread::yield()
@@ -83,22 +95,76 @@ void Thread::yield()
     db<Thread>(TRC) << "Thread::yield chamado\n";
     db<Thread>(INF) << "Yielding Thread: " << _running->_id << "\n";
     db<Thread>(INF) << "_ready size: " << _ready.size() << "\n";
-    
-    if (_running->_state != FINISHING &&
-        _running->_id != _main._id &&
-        _running->_id != _dispatcher._id)
+
+    if (_running != &_dispatcher &&
+        _running != &_main)
     {
         int now = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         _running->_link.rank(now);
+    }
+
+    if (_running->_state != FINISHING && _running->_state != SUSPENDED)
+    {
         _running->_state = READY;
     }
 
-    _ready.insert(&_running->_link);
+    if (_running->_state != SUSPENDED)
+    {
+        _ready.insert(&_running->_link);
+    }
+
     Thread* current_thread = _running;
     _running = _ready.remove_head()->object();
     _running->_state = RUNNING;
 
     Thread::switch_context(current_thread, &_dispatcher);
+}
+
+void Thread::suspend() {
+    db<Thread>(TRC) << "Thread::suspend chamado\n";
+    db<Thread>(INF) << "SUSPEND: Suspended thread " << _id << "\n";
+
+    if (_state == SUSPENDED || this == &_dispatcher) {
+        return;
+    }
+
+    _state = SUSPENDED;
+    _ready.remove(this);
+    _suspended.push_back(this);
+
+    if (this->id() == _running->id()) {
+        yield();
+    }
+
+}
+
+void Thread::resume() {
+    db<Thread>(TRC) << "Thread::resume chamado\n";
+    db<Thread>(INF) << "RESUME: Resumed thread " << _id << "\n";
+
+    if (_state != SUSPENDED) {
+        return;
+    }
+
+    _state = READY;
+    _suspended.remove(this);
+
+    _ready.insert(&_link);
+}
+
+int Thread::join() {
+    db<Thread>(TRC) << "Thread::join chamado\n";
+    db<Thread>(INF) << "JOIN: Thread " << _running->_id << " is joining Thread " << _id << "\n";
+
+    if (_state == FINISHING) {
+        return 0;
+    }
+
+    Thread* current_thread = _running; 
+    _running->suspend();
+    _joining = current_thread;
+
+    return _exit_code;
 }
 
 Thread::~Thread() {

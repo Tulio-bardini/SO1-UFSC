@@ -7,6 +7,7 @@
 #include "list.h"
 #include <ctime> 
 #include <chrono>
+#include <list>
 
 __BEGIN_API
 
@@ -22,7 +23,8 @@ public:
     enum State {
         RUNNING,
         READY,
-        FINISHING
+        FINISHING,
+        SUSPENDED
     };
 
     /*
@@ -97,8 +99,24 @@ public:
 
     Context* context() { return _context; }
 
+    /*
+    * Suspende a thread em execução até que a thread alvo finalize.
+    */
+    int join();
+
+    /*
+     * Coloca a thread que esta executando na fila de threads suspensas.
+     */
+    void suspend();
+
+    /*
+     * Coloca a thread suspensa de volta para a fila de prontos
+     */
+    void resume();
+
 private:
     int _id;
+    int _exit_code;
     static int _next_id;
     Context * volatile _context;
     static Thread * _running;
@@ -107,8 +125,11 @@ private:
     static CPU::Context _main_context;
     static Thread _dispatcher;
     static Ready_Queue _ready;
+    static std::list<Thread*> _suspended;
     Ready_Queue::Element _link;
     volatile State _state;
+
+    Thread* _joining;
 
     /*
      * Qualquer outro atributo que você achar necessário para a solução.
@@ -123,6 +144,8 @@ inline Thread::Thread(void (* entry)(Tn ...), Tn ... an) /* inicialização de _
 
     _context = new Context(entry, an...);
 
+    _exit_code = 0;
+    _joining = 0;
     _id = _next_id++;
     _state = READY;
     _link = Ready_Queue::Element(this, (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count()));
