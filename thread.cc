@@ -160,9 +160,8 @@ int Thread::join() {
         return 0;
     }
 
-    Thread* current_thread = _running; 
+    _joining = _running;
     _running->suspend();
-    _joining = current_thread;
 
     return _exit_code;
 }
