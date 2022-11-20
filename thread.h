@@ -24,7 +24,8 @@ public:
         RUNNING,
         READY,
         FINISHING,
-        SUSPENDED
+        SUSPENDED,
+        WAITING
     };
 
     /*
@@ -113,6 +114,16 @@ public:
      * Coloca a thread suspensa de volta para a fila de prontos
      */
     void resume();
+
+    /*
+     * Coloca a thread de referência na fila de threads sleep
+     */
+    static void sleep();
+
+    /*
+     * Coloca a thread que esta na cabeça da fila de threads sleep na _ready
+     */
+    static void wakeup(Thread* threadSleeping);
 
 private:
     int _id;

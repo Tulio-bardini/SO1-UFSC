@@ -5,14 +5,17 @@
 #include "thread.h"
 #include "traits.h"
 #include "debug.h"
+#include "list.h"
 
 __BEGIN_API
 
 class Semaphore
 {
 public:
-    Semaphore(int v = 1);
+
+    Semaphore(int v = 1) {_size = v; _poll = v;};
     ~Semaphore();
+    typedef std::list<Thread*> sleep_queue;
 
     void p();
     void v();
@@ -28,6 +31,10 @@ private:
 
 private:
     //DECLARAÇÃO DOS ATRIBUTOS DO SEMÁFORO
+    int _size;
+    int _poll;
+    sleep_queue _slept;
+
 };
 
 __END_API

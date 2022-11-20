@@ -166,6 +166,24 @@ int Thread::join() {
     return _exit_code;
 }
 
+void Thread::sleep() {
+    if (_running == &_dispatcher) {
+        return;
+    }
+
+    _running->_state = WAITING;
+
+    yield();
+
+}
+
+void Thread::wakeup(Thread* threadSleeping) {
+    
+    threadSleeping->_state = READY;
+    _ready.insert(&threadSleeping->_link);
+
+}
+
 Thread::~Thread() {
     db<Thread>(TRC) << "Thread::~Thread() chamado\n";
     db<Thread>(INF) << "Thread " << _id << " destruída\n";
