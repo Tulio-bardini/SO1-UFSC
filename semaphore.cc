@@ -8,10 +8,8 @@ __BEGIN_API
 
 void Semaphore::p() {
 
-    if (_poll == 0) {
+    if (fdec(_poll) <= 0) {
         sleep();
-    } else {
-        fdec(_poll);
     }
 
 }
@@ -21,7 +19,9 @@ void Semaphore::v() {
     // Quando todas as threads ja tiverem sido liberadas
     if (_poll == _size) {
         return;
-    } else {
+    } 
+
+    if (_slept.size() > 0) {
         finc(_poll);
         wakeup();
     }
@@ -48,21 +48,24 @@ void Semaphore::sleep() {
 
 void Semaphore::wakeup() {
 
-    if (_slept.size() != 0) {
-        Thread* threadSleeping = _slept.front();
-        _slept.remove(threadSleeping);
-        fdec(_poll);
-        Thread::wakeup(threadSleeping);
-    }
-        
+    Thread* threadSleeping = _slept.front();
+    _slept.pop_front();
+    Thread::wakeup(threadSleeping);
+
 }
 
 void Semaphore::wakeup_all() {
 
+    if (_slept.size() != 0) {
+        for (int i = _slept.size(); i > 0; i--) {
+            wakeup();
+        }
+    }
+
 }
 
 Semaphore::~Semaphore() {
-    
+    wakeup_all();
 }
 
 __END_API
