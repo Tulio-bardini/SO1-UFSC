@@ -103,12 +103,12 @@ void Thread::yield()
         _running->_link.rank(now);
     }
 
-    if (_running->_state != FINISHING && _running->_state != SUSPENDED)
+    if (_running->_state != FINISHING && _running->_state != SUSPENDED && _running->_state != WAITING)
     {
         _running->_state = READY;
     }
 
-    if (_running->_state != SUSPENDED)
+    if (_running->_state != SUSPENDED && _running->_state != WAITING)
     {
         _ready.insert(&_running->_link);
     }

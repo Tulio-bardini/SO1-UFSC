@@ -30,13 +30,13 @@ void Semaphore::v() {
 
 int Semaphore::finc(volatile int & number) {
     int one = 1;
-    asm("LOCK xadd %%eax, %%ebx" : "=a"(number): "a" (number), "b" (one));
+    __asm__ __volatile__ ( "lock ; xadd %0, %1;": "=r"(one) : "m"(number), "0" (one) : "memory");
     return number;
 }
 
 int Semaphore::fdec(volatile int & number) {
     int one = -1;
-    asm("LOCK xadd %%eax, %%ebx" : "=a"(number): "a" (number), "b" (one));
+    __asm__ __volatile__ ( "lock ; xadd %0, %1;": "=r"(one) : "m"(number), "0" (one) : "memory");
     return number;
 }
 
