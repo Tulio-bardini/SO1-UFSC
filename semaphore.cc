@@ -19,10 +19,12 @@ void Semaphore::p() {
 void Semaphore::v() {
 
     // Quando todas as threads ja tiverem sido liberadas
-    std::cout << _poll << ": ANTES\n";
-    finc(_poll);
-    std::cout << _poll << ": DEPOIS\n";
-    wakeup();
+    if (_poll == _size) {
+        return;
+    } else {
+        finc(_poll);
+        wakeup();
+    }
 
 }
 
@@ -45,11 +47,14 @@ void Semaphore::sleep() {
 }
 
 void Semaphore::wakeup() {
-    
-    Thread* threadSleeping = _slept.front();
-    _slept.remove(threadSleeping);
-    fdec(_poll);
-    Thread::wakeup(threadSleeping);
+
+    if (_slept.size() != 0) {
+        Thread* threadSleeping = _slept.front();
+        _slept.remove(threadSleeping);
+        fdec(_poll);
+        Thread::wakeup(threadSleeping);
+    }
+        
 }
 
 void Semaphore::wakeup_all() {
