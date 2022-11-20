@@ -182,6 +182,8 @@ void Thread::wakeup(Thread* threadSleeping) {
     threadSleeping->_state = READY;
     _ready.insert(&threadSleeping->_link);
 
+    yield();
+
 }
 
 Thread::~Thread() {
