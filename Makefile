@@ -1,28 +1,31 @@
 CC=g++
 all:main
 
-DEPS = cpu.h debug.h main_class.h system.h thread.h traits.h list.h
+DEPS = cpu.h debug.h main_class.h system.h thread.h traits.h list.h semaphore.h
 
-main: cpu.o debug.o system.o thread.o main.o main_class.o
-	g++ -g cpu.o debug.o system.o thread.o main.o main_class.o -o main
+main: cpu.o debug.o system.o semaphore.o thread.o main.o main_class.o
+	g++ cpu.o debug.o system.o semaphore.o thread.o main.o main_class.o -o main
 
 cpu.o: cpu.cc $(DEPS)
-	g++ -g -c cpu.cc
+	g++ -c cpu.cc
 
 debug.o: debug.cc $(DEPS)
-	g++ -g -c debug.cc
+	g++ -c debug.cc
 
 main_class.o: main_class.cc $(DEPS)
-	g++ -g -c main_class.cc
+	g++ -c main_class.cc
 
 main.o: main.cc system.cc $(DEPS)
-	g++ -g -c main.cc
+	g++ -c main.cc
 
 system.o: system.cc $(DEPS)
-	g++ -g -c system.cc
+	g++ -c system.cc
+
+semaphore.o: semaphore.cc $(DEPS)
+	g++ -c semaphore.cc
 
 thread.o: thread.cc $(DEPS)
-	g++ -g -c thread.cc
+	g++ -c thread.cc
 
 clean:
 	rm *.o main

@@ -103,12 +103,12 @@ void Thread::yield()
         _running->_link.rank(now);
     }
 
-    if (_running->_state != FINISHING && _running->_state != SUSPENDED)
+    if (_running->_state == RUNNING)
     {
         _running->_state = READY;
     }
 
-    if (_running->_state != SUSPENDED)
+    if (_running->_state != SUSPENDED && _running->_state != WAITING)
     {
         _ready.insert(&_running->_link);
     }
@@ -132,7 +132,7 @@ void Thread::suspend() {
     _ready.remove(this);
     _suspended.push_back(this);
 
-    if (this->id() == _running->id()) {
+    if (this == _running) {
         yield();
     }
 
@@ -157,13 +157,36 @@ int Thread::join() {
     db<Thread>(INF) << "JOIN: Thread " << _running->_id << " is joining Thread " << _id << "\n";
 
     if (_state == FINISHING) {
-        return 0;
+        return _exit_code;
     }
 
     _joining = _running;
     _running->suspend();
 
     return _exit_code;
+}
+
+void Thread::sleep() {
+    db<Thread>(TRC) << "Thread::sleep chamado\n";
+    if (_running == &_dispatcher) {
+        return;
+    }
+    db<Thread>(INF) << "SLEEP: Thread " << _running->id() << "\n";
+    _running->_state = WAITING;
+
+    yield();
+
+}
+
+void Thread::wakeup(Thread* threadSleeping) {
+    db<Thread>(TRC) << "Thread::wakeup chamado\n";
+    db<Thread>(INF) << "WAKEUP: Thread " << threadSleeping->id() << "\n";
+
+    threadSleeping->_state = READY;
+    _ready.insert(&threadSleeping->_link);
+
+    yield();
+
 }
 
 Thread::~Thread() {

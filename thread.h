@@ -24,7 +24,8 @@ public:
         RUNNING,
         READY,
         FINISHING,
-        SUSPENDED
+        SUSPENDED,
+        WAITING
     };
 
     /*
@@ -45,6 +46,11 @@ public:
      * Retorna a Thread que está em execução.
      */ 
     static Thread * running() { return _running; }
+
+    /*
+     * Retorna o _link da Thread.
+     */ 
+    Ready_Queue::Element* link() { return &_link; }
 
     /*
      * Método para trocar o contexto entre duas thread, a anterior (prev)
@@ -113,6 +119,16 @@ public:
      * Coloca a thread suspensa de volta para a fila de prontos
      */
     void resume();
+
+    /*
+     * Coloca a thread de referência na fila de threads sleep
+     */
+    static void sleep();
+
+    /*
+     * Coloca a thread que esta na cabeça da fila de threads sleep na _ready
+     */
+    static void wakeup(Thread* threadSleeping);
 
 private:
     int _id;
