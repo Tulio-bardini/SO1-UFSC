@@ -31,12 +31,14 @@ int CPU::switch_context(Context *from, Context *to)
 }
 
 int CPU::finc(volatile int & number) {
+    db<CPU>(TRC) << "CPU::finc::switch_context() chamado\n";
     int one = 1;
     __asm__ __volatile__ ( "lock ; xadd %0, %1;": "=r"(one) : "m"(number), "0" (one) : "memory");
     return one;
 }
 
 int CPU::fdec(volatile int & number) {
+    db<CPU>(TRC) << "CPU::fdec::switch_context() chamado\n";
     int one = -1;
     __asm__ __volatile__ ( "lock ; xadd %0, %1;": "=r"(one) : "m"(number), "0" (one) : "memory");
     return one;

@@ -167,10 +167,11 @@ int Thread::join() {
 }
 
 void Thread::sleep() {
+    db<Thread>(TRC) << "Thread::sleep chamado\n";
     if (_running == &_dispatcher) {
         return;
     }
-
+    db<Thread>(INF) << "SLEEP: Thread " << _running->id() << "\n";
     _running->_state = WAITING;
 
     yield();
@@ -178,7 +179,9 @@ void Thread::sleep() {
 }
 
 void Thread::wakeup(Thread* threadSleeping) {
-    
+    db<Thread>(TRC) << "Thread::wakeup chamado\n";
+    db<Thread>(INF) << "WAKEUP: Thread " << threadSleeping->id() << "\n";
+
     threadSleeping->_state = READY;
     _ready.insert(&threadSleeping->_link);
 
