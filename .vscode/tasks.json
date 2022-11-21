@@ -13,6 +13,7 @@
                 "${fileDirname}/thread.cc",
                 "${fileDirname}/main.cc",
                 "${fileDirname}/main_class.cc",
+                "${fileDirname}/semaphore.cc",
                 "-o",
                 "${fileDirname}/main"
             ],
