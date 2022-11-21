@@ -30,4 +30,16 @@ int CPU::switch_context(Context *from, Context *to)
     return swapcontext(&from->_context, &to->_context);
 }
 
+int CPU::finc(volatile int & number) {
+    int one = 1;
+    __asm__ __volatile__ ( "lock ; xadd %0, %1;": "=r"(one) : "m"(number), "0" (one) : "memory");
+    return one;
+}
+
+int CPU::fdec(volatile int & number) {
+    int one = -1;
+    __asm__ __volatile__ ( "lock ; xadd %0, %1;": "=r"(one) : "m"(number), "0" (one) : "memory");
+    return one;
+}
+
 __END_API

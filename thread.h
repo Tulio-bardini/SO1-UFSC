@@ -48,6 +48,11 @@ public:
     static Thread * running() { return _running; }
 
     /*
+     * Retorna o _link da Thread.
+     */ 
+    Ready_Queue::Element* link() { return &_link; }
+
+    /*
      * Método para trocar o contexto entre duas thread, a anterior (prev)
      * e a próxima (next).
      * Deve encapsular a chamada para a troca de contexto realizada pela class CPU.

@@ -30,6 +30,7 @@ class CPU
             void save();
             void load();
 
+
         private:            
             char *_stack;
         public:
@@ -37,7 +38,8 @@ class CPU
         };
 
     public:
-
+        static int finc(volatile int & number);
+        static int fdec(volatile int & number);
         static int switch_context(Context *from, Context *to);
 
 };

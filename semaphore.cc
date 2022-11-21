@@ -3,6 +3,7 @@
 #include "traits.h"
 #include "debug.h"
 #include "semaphore.h"
+#include "cpu.h"
 
 __BEGIN_API
 
@@ -17,47 +18,43 @@ void Semaphore::p() {
 void Semaphore::v() {
 
     // Quando todas as threads ja tiverem sido liberadas
-    if (_poll == _size) {
+    if (_poll >= _size) {
         return;
-    } 
+    }
 
-    if (_slept.size() > 0) {
-        finc(_poll);
+    if (finc(_poll) < 0) {
         wakeup();
     }
 
 }
 
 int Semaphore::finc(volatile int & number) {
-    int one = 1;
-    __asm__ __volatile__ ( "lock ; xadd %0, %1;": "=r"(one) : "m"(number), "0" (one) : "memory");
-    return number;
+    return CPU::finc(number);
 }
 
 int Semaphore::fdec(volatile int & number) {
-    int one = -1;
-    __asm__ __volatile__ ( "lock ; xadd %0, %1;": "=r"(one) : "m"(number), "0" (one) : "memory");
-    return number;
+    return CPU::fdec(number);
 }
 
 void Semaphore::sleep() {
     Thread* running = Thread::running();
-    _slept.push_back(running);
+    _sleeping.push_back(running);
     running->sleep();
 }
 
 void Semaphore::wakeup() {
 
-    Thread* threadSleeping = _slept.front();
-    _slept.pop_front();
+    Thread* threadSleeping = _sleeping.front();
+    _sleeping.pop_front();
+
     Thread::wakeup(threadSleeping);
 
 }
 
 void Semaphore::wakeup_all() {
 
-    if (_slept.size() != 0) {
-        for (int i = _slept.size(); i > 0; i--) {
+    if (_sleeping.size() != 0) {
+        for (int i = _sleeping.size(); i > 0; i--) {
             wakeup();
         }
     }

@@ -103,7 +103,7 @@ void Thread::yield()
         _running->_link.rank(now);
     }
 
-    if (_running->_state != FINISHING && _running->_state != SUSPENDED && _running->_state != WAITING)
+    if (_running->_state == RUNNING)
     {
         _running->_state = READY;
     }
@@ -132,7 +132,7 @@ void Thread::suspend() {
     _ready.remove(this);
     _suspended.push_back(this);
 
-    if (this->id() == _running->id()) {
+    if (this == _running) {
         yield();
     }
 
@@ -157,7 +157,7 @@ int Thread::join() {
     db<Thread>(INF) << "JOIN: Thread " << _running->_id << " is joining Thread " << _id << "\n";
 
     if (_state == FINISHING) {
-        return 0;
+        return _exit_code;
     }
 
     _joining = _running;

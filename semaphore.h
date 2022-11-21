@@ -15,7 +15,6 @@ public:
 
     Semaphore(int v = 1) {_size = v; _poll = v;};
     ~Semaphore();
-    typedef std::list<Thread*> sleep_queue;
 
     void p();
     void v();
@@ -33,7 +32,7 @@ private:
     //DECLARAÇÃO DOS ATRIBUTOS DO SEMÁFORO
     int _size;
     int _poll;
-    sleep_queue _slept;
+    std::list<Thread*> _sleeping;
 
 };
 
