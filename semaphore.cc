@@ -50,10 +50,12 @@ void Semaphore::sleep() {
 
 void Semaphore::wakeup() {
     db<Semaphore>(TRC) << "Semaphore::wakeup chamado\n";
-    Thread* threadSleeping = _sleeping.front();
-    _sleeping.pop_front();
+    if (_sleeping.size() != 0) {
+        Thread* threadSleeping = _sleeping.front();
+        _sleeping.pop_front();
 
-    Thread::wakeup(threadSleeping);
+        Thread::wakeup(threadSleeping);
+    }
 
 }
 
